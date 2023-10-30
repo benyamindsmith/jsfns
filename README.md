@@ -1,6 +1,6 @@
 # jsfns
 
-Inspired by Josiah Parry's [pyfns](https://github.com/JosiahParry/pyfns/tree/main) package which illustrates a minimal approach to exporting Python functions in R package. This package serves to illustrate a minimal approach to exporting Javascript functions by use of the [V8 package]().
+Inspired by Josiah Parry's [pyfns](https://github.com/JosiahParry/pyfns/tree/main) package which illustrates a minimal approach to exporting Python functions in R package. This package serves to illustrate a minimal approach to exporting Javascript functions by use of the [V8 package](https://cran.r-project.org/web/packages/V8/index.html).
 
 By nature of V8 being unable to save instances for the future, this package follow's the guidelines for package development with V8. 
 
