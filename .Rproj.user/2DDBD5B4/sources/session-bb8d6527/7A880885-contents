@@ -1,12 +1,14 @@
 # jsfns
 
-Inspired by Josiah Parry's [pyfns](https://github.com/JosiahParry/pyfns/tree/main) package which illustrates a minimal approach to exporting Python functions in R package. This package serves to illustrate a minimal approach to exporting Javascript functions by use of the [V8 package]().
+Inspired by Josiah Parry's [pyfns](https://github.com/JosiahParry/pyfns/tree/main) package which illustrates a minimal approach to exporting Python functions in R package. This package serves to illustrate a minimal approach to exporting Javascript functions by use of the [V8 package](https://cran.r-project.org/web/packages/V8/index.html). 
 
-By nature of V8 being unable to save instances for the future, this package follow's the guidelines for package development with V8. 
+Alot of the text in this README here is copied from Josiah's and adjusted to fit the context of this package. Thank you Josiah for doing much of the heavy lifting!
 
-> A V8 context cannot be saved or duplicated, but creating a new context and sourcing code is very cheap. You can run as many parallel v8 contexts as you want. R packages that use V8 can use a separate V8 context for each object or function call.
+The process consists of: 
 
-As such there is no new environment, nor any use of an `.onLoad()` function. In this illustration, each individual function creates a new V8 instance every time the function is called.
+1. Having the package source the `.js` scripts on start-up.
+
+2. Create R wrappers for the Javascript functions. 
 
 Example Usage:
 
@@ -39,19 +41,39 @@ function helloName(name) {
 
 ```
 
+# Sourcing scripts
+
+Scripts are sourced in `R/zzz.R` in which there is an `.onLoad()` function call. This gets called only once when the package is loaded.
+
+```r
+eng <- NULL
+.onLoad <- function(libname, pkgname) {
+
+  eng <<- V8::v8()
+
+  all_files <- list.files(
+    system.file(package = "jsfns")
+  )
+
+  js_files <- subset(all_files, all_files %in% grep("\\.js",all_files,value=TRUE))
+
+  sapply(js_files, function(x) { eng[["source"]](system.file(x, package="jsfns"))})
+
+}
+
+```
+
+In this chunk identify all the `.js` files located in `inst` and use the `source` method from `V8::v8()` to bring the javascript functions into scope. The function needs a path to the javascript code that we want to source. This is where `system.file()` comes into play. It can access files stored in `inst`. Note that it does not include `inst`. 
+
 # Wrapper Functions
 
-Unlike the elegant solution that `pyfns` provides, making use of javascript code with `V8` requires the creation of a new context and sourcing of code every time the function is called. 
+Since the functions are sourced into the environment on start-up, they can be called from the environment directly. If there were arguments we can pass them in using `...` in the outer function or recreating the same function arguments.
 
 As such the code for `hello_world()` is: 
 
 
 ```r
 hello_world <- function() {
-  eng <- V8::v8("jsfns")
-  eng[["source"]](
-    system.file("helloWorld.js",package="jsfns")
-  )
   eng[["call"]]("helloWorld")
 }
 
@@ -62,11 +84,6 @@ And for `hello_name()`:
 ```r
 
 hello_name <- function(name){
-
-  eng <- V8::v8("jsfns")
-  eng[["source"]](
-    system.file("helloName.js",package="jsfns")
-  )
   eng[["call"]]("helloName",name)
 }
 
