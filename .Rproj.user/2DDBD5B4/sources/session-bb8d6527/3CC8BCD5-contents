@@ -1,0 +1,3 @@
+
+
+fastGraph::shadeDist(qf(0.95, df1=5,df2=15),"df",5,15)
